@@ -8,13 +8,14 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
 use std::ops::{BitAnd, BitOr};
+use schemars::JsonSchema;
 
 const UB_TRUE: i32 = 1;
 const UB_FALSE: i32 = -1;
 const UB_UNKNOWN: i32 = 0;
 
 #[repr(i32)]
-#[derive(PartialEq, Debug, Clone, Copy, AsExpression, FromSqlRow)]
+#[derive(PartialEq, Debug, Clone, Copy, AsExpression, FromSqlRow, JsonSchema)]
 #[diesel(sql_type = Integer)]
 pub enum UnknownBool {
     Unknown = UB_UNKNOWN,

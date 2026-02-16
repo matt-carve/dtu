@@ -1,14 +1,16 @@
 use std::{fmt::Display, hash::Hash};
 
 use diesel::prelude::*;
+use schemars::JsonSchema;
 use dtu_proc_macro::sql_db_row;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use smalisa::AccessFlag;
 
 use crate::utils::ClassName;
 
 use super::schema::*;
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
 #[diesel(table_name = calls)]
 pub struct Call {
@@ -16,6 +18,7 @@ pub struct Call {
     pub callee: i32,
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
 #[diesel(table_name = supers)]
 pub struct Super {
@@ -23,6 +26,7 @@ pub struct Super {
     pub child: i32,
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
 #[diesel(table_name = interfaces)]
 pub struct Interface {
@@ -30,6 +34,7 @@ pub struct Interface {
     pub class: i32,
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
 #[diesel(table_name = methods)]
 pub struct Method {
@@ -51,6 +56,7 @@ pub struct Class {
     pub source: i32,
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
 #[diesel(table_name = sources)]
 pub struct Source {
@@ -65,11 +71,12 @@ pub struct LoadStatus {
     pub kind: i32,
 }
 
-#[derive(Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(test, derive(PartialEq, Eq, Debug, PartialOrd, Ord))]
 pub struct ClassSpec {
     pub name: ClassName,
     #[serde(skip, default)]
+    #[schemars(skip)]
     pub access_flags: AccessFlag,
     pub source: String,
 }
@@ -85,7 +92,7 @@ impl ClassSpec {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(PartialEq, Eq, Hash, Clone, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(test, derive(Debug, PartialOrd, Ord))]
 pub struct MethodCallPath {
     /// The path of methods that ends up at the target call
@@ -165,7 +172,7 @@ where
     ))
 }
 
-#[derive(Eq, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Eq, Clone, Serialize, Deserialize, JsonSchema)]
 #[cfg_attr(test, derive(Debug, PartialOrd, Ord))]
 pub struct MethodSpec {
     pub class: ClassName,
@@ -177,6 +184,7 @@ pub struct MethodSpec {
         serialize_with = "serialize_flags",
         deserialize_with = "deserialize_flags"
     )]
+    #[schemars(with = "u64")]
     pub access_flags: AccessFlag,
 }
 

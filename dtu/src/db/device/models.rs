@@ -6,6 +6,8 @@ use std::path::PathBuf;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
+use schemars::JsonSchema;
+
 use dtu_proc_macro::sql_db_row;
 
 use crate::db::common::{
@@ -19,9 +21,9 @@ use crate::UnknownBool;
 
 use super::schema::*;
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
 #[diesel(table_name = device_properties)]
-#[derive(Serialize, Deserialize)]
 pub struct DeviceProperty {
     pub id: i32,
     pub name: String,
@@ -34,8 +36,8 @@ impl Display for DeviceProperty {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct Permission {
     pub id: i32,
     pub name: String,
@@ -43,11 +45,10 @@ pub struct Permission {
     pub source_apk_id: i32,
 }
 
+#[derive(Associations, Selectable, Serialize, Deserialize)]
 #[sql_db_row]
-#[derive(Associations, Selectable)]
 #[diesel(belongs_to(Apk))]
 #[diesel(table_name = apk_permissions)]
-#[derive(Serialize, Deserialize)]
 pub struct ApkPermission {
     pub id: i32,
     pub name: String,
@@ -60,23 +61,29 @@ impl Display for Permission {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct PermissionDiff {
     pub id: i32,
     pub permission: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP protection level matches device")]
     pub protection_level_matches_diff: bool,
+    #[schemars(description = "Protection level in device (if different from baseline AOSP)")]
     pub diff_protection_level: Option<String>,
 }
 
 /// The result of combining an Permission with a PermissionDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedPermission {
     pub permission: Permission,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP protection level matches device")]
     pub protection_level_matches_diff: bool,
+    #[schemars(description = "Protection level in device (if different from baseline AOSP)")]
     pub diff_protection_level: Option<String>,
 }
 
@@ -118,8 +125,8 @@ impl From<(Permission, PermissionDiff)> for DiffedPermission {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct ProtectedBroadcast {
     pub id: i32,
     pub name: String,
@@ -131,8 +138,8 @@ impl Display for ProtectedBroadcast {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct UnprotectedBroadcast {
     pub id: i32,
     pub name: String,
@@ -145,8 +152,8 @@ impl Display for UnprotectedBroadcast {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct Apk {
     pub id: i32,
     pub app_name: String,
@@ -200,7 +207,7 @@ impl Apk {
 }
 
 /// Apk with the associated permissions that it uses
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct ApkWithPermissions {
     pub apk: Apk,
     pub permissions: Vec<String>,
@@ -216,9 +223,10 @@ impl From<(Vec<ApkPermission>, Apk)> for ApkWithPermissions {
 }
 
 /// The result of combining an Apk with an ApkDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedApk {
     pub apk: Apk,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
 }
 
@@ -258,12 +266,13 @@ impl From<(Apk, ApkDiff)> for DiffedApk {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct ApkDiff {
     pub id: i32,
     pub apk: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
 }
 
@@ -273,8 +282,8 @@ impl Display for Apk {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct Receiver {
     pub id: i32,
     pub class_name: ClassName,
@@ -291,25 +300,33 @@ impl Display for Receiver {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct ReceiverDiff {
     pub id: i32,
     pub receiver: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
 }
 
 /// The result of combining an Receiver with an ReceiverDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedReceiver {
     pub receiver: Receiver,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
 }
 
@@ -352,8 +369,8 @@ impl Deref for DiffedReceiver {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct Service {
     pub id: i32,
     pub class_name: ClassName,
@@ -371,25 +388,33 @@ impl Display for Service {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct ServiceDiff {
     pub id: i32,
     pub service: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
 }
 
 /// The result of combining an Service with an ServiceDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedService {
     pub service: Service,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
 }
 
@@ -432,9 +457,9 @@ impl Deref for DiffedService {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
 #[diesel(table_name = activities)]
-#[derive(Serialize, Deserialize)]
 pub struct Activity {
     pub id: i32,
     pub class_name: ClassName,
@@ -451,25 +476,33 @@ impl Display for Activity {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct ActivityDiff {
     pub id: i32,
     pub activity: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
 }
 
 /// The result of combining an Activity with an ActivityDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedActivity {
     pub activity: Activity,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
 }
 
@@ -560,8 +593,8 @@ impl_apk_ipc!(Service);
 // TODO Eventually the schema should just have another table for authorities
 //  so we can do a join
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct Provider {
     pub id: i32,
     pub name: String,
@@ -636,33 +669,49 @@ impl Provider {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct ProviderDiff {
     pub id: i32,
     pub provider: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
+    #[schemars(description = "Baseline AOSP write permission matches device")]
     pub write_permission_matches_diff: bool,
+    #[schemars(description = "Write permission in device (if different from baseline AOSP)")]
     pub diff_write_permission: Option<String>,
+    #[schemars(description = "Baseline AOSP read permission matches device")]
     pub read_permission_matches_diff: bool,
+    #[schemars(description = "Read permission in device (if different from baseline AOSP)")]
     pub diff_read_permission: Option<String>,
 }
 
 /// The result of combining an Provider with an ProviderDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedProvider {
     pub provider: Provider,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP exported matches device")]
     pub exported_matches_diff: bool,
+    #[schemars(description = "Baseline AOSP permission matches device")]
     pub permission_matches_diff: bool,
+    #[schemars(description = "Permission in device (if different from baseline AOSP)")]
     pub diff_permission: Option<String>,
+    #[schemars(description = "Baseline AOSP write permission matches device")]
     pub write_permission_matches_diff: bool,
+    #[schemars(description = "Write permission in device (if different from baseline AOSP)")]
     pub diff_write_permission: Option<String>,
+    #[schemars(description = "Baseline AOSP read permission matches device")]
     pub read_permission_matches_diff: bool,
+    #[schemars(description = "Read permission in device (if different from baseline AOSP)")]
     pub diff_read_permission: Option<String>,
 }
 
@@ -711,8 +760,8 @@ impl Deref for DiffedProvider {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct SystemServiceImpl {
     pub id: i32,
     pub system_service_id: i32,
@@ -741,8 +790,8 @@ impl Display for SystemServiceImpl {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct SystemServiceMethod {
     pub id: i32,
     pub system_service_id: i32,
@@ -777,21 +826,25 @@ impl SystemServiceMethod {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct SystemServiceMethodDiff {
     pub id: i32,
     pub method: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP hash matches device")]
     pub hash_matches_diff: UnknownBool,
 }
 
 /// The result of combining an SystemServiceMethod with an SystemServiceMethodDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedSystemServiceMethod {
     pub method: SystemServiceMethod,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
+    #[schemars(description = "Baseline AOSP hash matches device")]
     pub hash_matches_diff: UnknownBool,
 }
 
@@ -832,12 +885,16 @@ impl Deref for DiffedSystemServiceMethod {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct SystemService {
     pub id: i32,
     pub name: String,
+    #[schemars(
+        description = "The Java interface that clients interact with. May be null if the interface is inaccessible (i.e. hidden by selinux)"
+    )]
     pub iface: Option<ClassName>,
+    #[schemars(description = "Whether a binder interface can be obtained.")]
     pub can_get_binder: UnknownBool,
 }
 
@@ -854,19 +911,21 @@ impl SystemService {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct SystemServiceDiff {
     pub id: i32,
     pub system_service: i32,
     pub diff_source: i32,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
 }
 
 /// The result of combining an SystemService with an SystemServiceDiff
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, JsonSchema)]
 pub struct DiffedSystemService {
     pub service: SystemService,
+    #[schemars(description = "Present in baseline AOSP")]
     pub exists_in_diff: bool,
 }
 
@@ -906,8 +965,8 @@ impl Deref for DiffedSystemService {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct DiffSource {
     pub id: i32,
     pub name: String,
@@ -919,8 +978,8 @@ impl Display for DiffSource {
     }
 }
 
+#[derive(Serialize, Deserialize, JsonSchema)]
 #[sql_db_row]
-#[derive(Serialize, Deserialize)]
 pub struct FuzzResult {
     pub id: i32,
     pub service_name: String,
@@ -929,3 +988,4 @@ pub struct FuzzResult {
     pub exception_thrown: bool,
     pub security_exception_thrown: bool,
 }
+

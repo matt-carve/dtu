@@ -13,9 +13,10 @@ use diesel::{
     sql_types::Text,
     AsExpression,
 };
+use schemars::JsonSchema;
 
 /// Single type to represent both smali and java class names
-#[derive(Eq, Debug, Clone, Ord, PartialOrd)]
+#[derive(Eq, Debug, Clone, Ord, PartialOrd, JsonSchema)]
 #[cfg_attr(feature = "sql", derive(FromSqlRow, AsExpression))]
 #[cfg_attr(feature = "sql", diesel(sql_type = Text))]
 pub struct ClassName {

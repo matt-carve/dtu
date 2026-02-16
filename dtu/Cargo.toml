@@ -37,6 +37,8 @@ once_cell = "1.21"
 protobuf = "=3.5.1"
 protobuf-json-mapping = "=3.5.1"
 
+schemars = "1.2.1"
+
 [target.'cfg(not(windows))'.dependencies]
 libc = { workspace = true }
 

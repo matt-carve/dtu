@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use crate::{DEVICE_PATH_SEP_CHAR, REPLACED_DEVICE_PATH_SEP_CHAR};
 use serde::{Deserialize, Serialize};
+use schemars::JsonSchema;
 
 #[cfg(feature = "sql")]
 use diesel::{
@@ -35,7 +36,7 @@ use super::{replace_char, unreplace_char, OS_PATH_SEP_CHAR};
 /// squashed path is used.
 ///
 /// Note that for with `%` in their name, squashed views will escape them as `\%`.
-#[derive(Clone, Eq)]
+#[derive(Clone, Eq, JsonSchema)]
 #[cfg_attr(feature = "sql", derive(FromSqlRow, AsExpression))]
 #[cfg_attr(feature = "sql", diesel(sql_type = Text))]
 pub struct DevicePath {
