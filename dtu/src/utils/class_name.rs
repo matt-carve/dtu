@@ -13,10 +13,10 @@ use diesel::{
     sql_types::Text,
     AsExpression,
 };
-use schemars::JsonSchema;
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 
 /// Single type to represent both smali and java class names
-#[derive(Eq, Debug, Clone, Ord, PartialOrd, JsonSchema)]
+#[derive(Eq, Debug, Clone, Ord, PartialOrd)]
 #[cfg_attr(feature = "sql", derive(FromSqlRow, AsExpression))]
 #[cfg_attr(feature = "sql", diesel(sql_type = Text))]
 pub struct ClassName {
@@ -186,6 +186,19 @@ impl<'de> Deserialize<'de> for ClassName {
         D: serde::Deserializer<'de>,
     {
         Ok(ClassName::new(String::deserialize(deserializer)?))
+    }
+}
+
+impl JsonSchema for ClassName {
+    fn schema_name() -> Cow<'static, str> {
+        "ClassName".into()
+    }
+
+    fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+        json_schema!({
+            "type": "string",
+            "description": "A Java class name, either in Java format (com.example.Class) or smali format (Lcom/example/Class;)"
+        })
     }
 }
 

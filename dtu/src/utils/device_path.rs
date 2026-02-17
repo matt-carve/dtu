@@ -1,10 +1,11 @@
+use std::borrow::Cow;
 use std::fmt::{Debug, Display, Formatter};
 use std::hash::Hash;
 use std::path::{Path, PathBuf};
 
 use crate::{DEVICE_PATH_SEP_CHAR, REPLACED_DEVICE_PATH_SEP_CHAR};
+use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
-use schemars::JsonSchema;
 
 #[cfg(feature = "sql")]
 use diesel::{
@@ -36,7 +37,7 @@ use super::{replace_char, unreplace_char, OS_PATH_SEP_CHAR};
 /// squashed path is used.
 ///
 /// Note that for with `%` in their name, squashed views will escape them as `\%`.
-#[derive(Clone, Eq, JsonSchema)]
+#[derive(Clone, Eq)]
 #[cfg_attr(feature = "sql", derive(FromSqlRow, AsExpression))]
 #[cfg_attr(feature = "sql", diesel(sql_type = Text))]
 pub struct DevicePath {
@@ -61,6 +62,19 @@ impl<'de> Deserialize<'de> for DevicePath {
         Ok(DevicePath::new(<String as Deserialize>::deserialize(
             deserializer,
         )?))
+    }
+}
+
+impl JsonSchema for DevicePath {
+    fn schema_name() -> Cow<'static, str> {
+        "ClassName".into()
+    }
+
+    fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+        json_schema!({
+            "type": "string",
+            "description": "A Linux filesystem path to a resource on the Android device."
+        })
     }
 }
 
